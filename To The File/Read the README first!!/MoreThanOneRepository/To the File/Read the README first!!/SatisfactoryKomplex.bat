@@ -14,7 +14,7 @@ REM Das hier ist also auch ein Kommentar!
 
 SETLOCAL EnableExtensions
 SETLOCAL enabledelayedexpansion
-SET waitSecUntilStartingCheck=25
+SET waitSecUntilStartingCheck=35
 SET exeName=FactoryGame.exe
 SET gitMessageFile=gitMessage.txt
 SET PATHTOSAVED=C:\Users\%username%\AppData\Local\FactoryGame\Saved
