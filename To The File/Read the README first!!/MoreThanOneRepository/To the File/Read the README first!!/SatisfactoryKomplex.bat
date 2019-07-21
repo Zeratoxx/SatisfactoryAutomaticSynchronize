@@ -14,22 +14,24 @@ REM Das hier ist also auch ein Kommentar!
 
 SETLOCAL EnableExtensions
 SETLOCAL enabledelayedexpansion
-SET waitSecUntilStartingCheck=35
+SET checkInterval=2
 SET exeName=FactoryGame.exe
 SET gitMessageFile=gitMessage.txt
 SET PATHTOSAVED=C:\Users\%username%\AppData\Local\FactoryGame\Saved
 SET nameOfWorldlistFile=listOfWorlds.txt
 SET counter=0
 SET listOfRepos=
+SET alreadyStarted=
+
 
 
 
 
 CD %PATHTOSAVED%
 FOR /F %%f IN (%nameOfWorldlistFile%) DO (
-
-SET /A counter=counter+1
-CALL :concat !counter! %%f
+	
+	SET /A counter=counter+1
+	CALL :concat !counter! %%f
 )
 
 
@@ -52,21 +54,21 @@ SET theChoicedRepo=none
 
 
 IF %theChoice% EQU 0 (
-FOR /F %%l IN (%nameOfWorldlistFile%) DO SET theChoicedRepo=%%l&GOTO nextline
+	FOR /F %%l IN (%nameOfWorldlistFile%) DO SET theChoicedRepo=%%l&GOTO nextline
 ) ELSE (
-IF %theChoice% GTR 0 (
-FOR /F "skip=%theChoice%" %%l IN (%nameOfWorldlistFile%) DO SET theChoicedRepo=%%l&GOTO nextline
-)
+	IF %theChoice% GTR 0 (
+		FOR /F "skip=%theChoice%" %%l IN (%nameOfWorldlistFile%) DO SET theChoicedRepo=%%l&GOTO nextline
+	)
 )
 
 
 :nextline
 IF "%theChoicedRepo%"=="none" (
-ECHO Invalid input^^!^^!
-ECHO.
-ECHO.
-echo 
-GOTO select
+	ECHO Invalid input^^!^^!
+	ECHO.
+	ECHO.
+	echo 
+	GOTO select
 )
 ECHO.
 GOTO start
@@ -74,9 +76,9 @@ GOTO start
 
 :concat
 IF "%listOfRepos%"=="" (
-SET listOfRepos=%1: %2
+	SET listOfRepos=%1: %2
 ) ELSE (
-SET listOfRepos=!listOfRepos!,%1: %2
+	SET listOfRepos=!listOfRepos!,%1: %2
 )
 ::callback EXIT /B
 EXIT /B
@@ -98,7 +100,7 @@ DEL /Q *
 CD %PATHTOSAVED%\%theChoicedRepo%
 
 if exist .\.git\ (
-git pull
+	git pull
 )
 DIR /B *.sav >%PATHTOSAVED%\Logs\%theChoicedRepo%.txt
 ECHO.
@@ -109,42 +111,42 @@ ECHO.
 CD %PATHTOSAVED%\Logs
 ECHO -----
 ECHO Starting the game...
-ECHO.
 START com.epicgames.launcher://apps/CrabEA?action=launch
-timeout /T %waitSecUntilStartingCheck% /nobreak>NUL
 
 
-:search
+:checkIfRunning
 FOR /F %%x IN ('tasklist /NH /FI "IMAGENAME eq %exeName%"') DO (
-
-IF %%x == %exeName% GOTO loop
+	IF %%x == %exeName% (
+	
+		IF NOT DEFINED alreadyStarted (
+			ECHO.
+			SET alreadyStarted=y
+		)
+		
+		ECHO Satisfactory is running^^!
+		timeout /T %checkInterval% /nobreak >NUL
+		GOTO checkIfRunning
+		
+	) ELSE IF DEFINED alreadyStarted (
+		ECHO.
+		ECHO Satisfactory has been closed^^! Starting to synchronize^^!
+		GOTO continue
+		
+	) ELSE (
+		ECHO Satisfactory was not started yet..
+		timeout /T %checkInterval% /nobreak >NUL
+		GOTO checkIfRunning
+	)
 )
 
-if exist search.log (
-DEL /Q search.log
+IF EXIST search.log (
+	DEL /Q search.log
 ) ELSE (
-REM Do nothing.
+	REM Do nothing.
 )
-
-ECHO.
-ECHO Satisfactory has been closed^^! Starting to synchronize^^!
-GOTO continue
-
-
-:loop
-ECHO Satisfactory is running^^!
-timeout /T 2 /nobreak >NUL
-GOTO search
-
-
-
-
-
 
 
 :continue
-
-
 ECHO.
 ECHO.
 ECHO -----
