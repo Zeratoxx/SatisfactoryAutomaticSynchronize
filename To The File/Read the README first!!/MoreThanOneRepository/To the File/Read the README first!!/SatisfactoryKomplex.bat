@@ -67,7 +67,7 @@ IF "%theChoicedRepo%"=="none" (
 	ECHO Invalid input^^!^^!
 	ECHO.
 	ECHO.
-	echo 
+	ECHO 
 	GOTO select
 )
 ECHO.
@@ -115,6 +115,11 @@ START com.epicgames.launcher://apps/CrabEA?action=launch
 
 
 :checkIfRunning
+IF EXIST search.log (
+	DEL /Q search.log
+) ELSE (
+	REM Do nothing.
+)
 FOR /F %%x IN ('tasklist /NH /FI "IMAGENAME eq %exeName%"') DO (
 	IF %%x == %exeName% (
 	
@@ -139,14 +144,13 @@ FOR /F %%x IN ('tasklist /NH /FI "IMAGENAME eq %exeName%"') DO (
 	)
 )
 
+
+:continue
 IF EXIST search.log (
 	DEL /Q search.log
 ) ELSE (
 	REM Do nothing.
 )
-
-
-:continue
 ECHO.
 ECHO.
 ECHO -----
