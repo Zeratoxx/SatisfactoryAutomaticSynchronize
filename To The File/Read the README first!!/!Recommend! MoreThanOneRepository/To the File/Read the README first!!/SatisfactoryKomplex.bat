@@ -158,6 +158,7 @@ ECHO Saving files...
 ECHO.
 CD %PATHTOSAVED%\SaveGames
 xcopy /q/y *.sav %PATHTOSAVED%\%theChoicedRepo%
+DEL /Q *.sav
 DEL %PATHTOSAVED%\Logs\%theChoicedRepo%.txt
 ECHO.
 ECHO.
