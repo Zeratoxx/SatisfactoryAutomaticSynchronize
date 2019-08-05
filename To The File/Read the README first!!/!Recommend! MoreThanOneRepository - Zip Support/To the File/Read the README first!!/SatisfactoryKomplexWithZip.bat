@@ -135,15 +135,14 @@ IF EXIST savpackage.zip (
 	powershell.exe -command "& { Expand-Archive savpackage.zip .\ -Force; }"
 	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChoicedRepo%.txt
 	xcopy /q/y *.sav %PATHTOSAVED%\SaveGames\
-	DEL /Q *
+	CD %PATHTOSAVED%\
+	RMDIR /S /Q .\temp\
 
 ) ELSE (
 	ECHO Working with sav files.
 	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChoicedRepo%.txt
 	xcopy /q/y *.sav %PATHTOSAVED%\SaveGames\
 )
-
-
 
 
 ECHO.
@@ -198,16 +197,17 @@ ECHO -----
 ECHO Saving files...
 ECHO.
 
-IF EXIST %PATHTOSAVED%\temp\ (
-	REM Do nothing.
-) ELSE (
-	MKDIR %PATHTOSAVED%\temp\
-)
 
 CD %PATHTOSAVED%\SaveGames
 
 IF DEFINED workWithZip (
 	ECHO Working with zip file.
+	IF EXIST %PATHTOSAVED%\temp\ (
+		REM Do nothing.
+	) ELSE (
+		MKDIR %PATHTOSAVED%\temp\
+	)
+	
 	xcopy /q/y *.sav %PATHTOSAVED%\temp\
 	DEL /Q *
 	
@@ -215,7 +215,9 @@ IF DEFINED workWithZip (
 	ECHO Komprimieren...
 	powershell.exe -command "& { Compress-Archive *.sav savpackage.zip -CompressionLevel Optimal -Update; }"
 	xcopy /q/y savpackage.zip %PATHTOSAVED%\%theChoicedRepo%\
-	DEL /Q *
+	CD %PATHTOSAVED%\
+	RMDIR /S /Q .\temp\
+	
 	
 ) ELSE (
 	ECHO Working with sav files.
