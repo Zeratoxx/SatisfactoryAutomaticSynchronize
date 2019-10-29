@@ -46,19 +46,30 @@ FOR /F %%f IN (%nameOfWorldlistFile%) DO (
 
 IF EXIST %PATHTOSAVED%\SaveGames\common\ (
 		SET whichSaved=SaveGames\common\
-		ECHO Working with %PATHTOSAVED%\%whichSaved%
-		ECHO.
 	) ELSE (
 		SET whichSaved=SaveGames\
-		ECHO Working with %PATHTOSAVED%\%whichSaved%
-		ECHO.
 	)
 
 
 
 
-:select
 
+REM KEINE DEMO.
+GOTO select
+
+ECHO Anderes Programm starten?
+SETLOCAL
+CHOICE /n /C "JN" /m "(J / N)"
+IF errorlevel 2 GOTO nein1
+IF errorlevel 1 GOTO ja1
+
+
+
+
+
+
+:nein1
+:select
 ECHO Please enter the number of the map you want to play.
 ECHO.
 ECHO The List:
@@ -111,15 +122,14 @@ EXIT /B
 :start
 
 ECHO -----
+ECHO Working with %PATHTOSAVED%\%whichSaved% ...
+ECHO.
 ECHO Loading files from %theChoicedRepo%...
 ECHO.
 
-
-
-CD %PATHTOSAVED%\%whichSaved%
-DEL /Q *
-
-
+ECHO Deleting current sav files...
+DEL /S/Q %PATHTOSAVED%\SaveGames\
+ECHO.
 
 CD %PATHTOSAVED%\%theChoicedRepo%
 
@@ -145,7 +155,7 @@ IF EXIST savpackage.zip (
 	xcopy /q/y savpackage.zip %PATHTOSAVED%\temp\
 	
 	CD %PATHTOSAVED%\temp
-	ECHO Entpacken...
+	ECHO Decompress...
 	powershell.exe -command "& { Expand-Archive savpackage.zip .\ -Force; }"
 	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChoicedRepo%.txt
 	xcopy /q/y *.sav %PATHTOSAVED%\%whichSaved%
@@ -161,6 +171,7 @@ IF EXIST savpackage.zip (
 
 ECHO.
 ECHO.
+
 
 CD %PATHTOSAVED%\Logs
 ECHO -----
@@ -201,6 +212,7 @@ FOR /F %%x IN ('tasklist /NH /FI "IMAGENAME eq %exeName%"') DO (
 
 :continue
 IF EXIST search.log (
+	REM Clear cache, program should not get bigger and bigger.
 	DEL /Q search.log
 ) ELSE (
 	REM Do nothing.
@@ -208,10 +220,12 @@ IF EXIST search.log (
 ECHO.
 ECHO.
 ECHO -----
+ECHO Working with %PATHTOSAVED%\%whichSaved% ...
+ECHO.
 ECHO Saving files...
 ECHO.
 
-CD %PATHTOSAVED%\%whichSaved%
+CD %PATHTOSAVED%\SaveGames\
 
 IF DEFINED workWithZip (
 	ECHO Working with zip file.
@@ -221,11 +235,10 @@ IF DEFINED workWithZip (
 		MKDIR %PATHTOSAVED%\temp\
 	)
 	
-	xcopy /q/y *.sav %PATHTOSAVED%\temp\
-	DEL /Q *
+	forfiles /s /m *.sav /c "cmd /c xcopy @path %PATHTOSAVED%\temp\ /q /y"
 	
 	CD %PATHTOSAVED%\temp
-	ECHO Komprimieren...
+	ECHO Compress...
 	powershell.exe -command "& { Compress-Archive *.sav savpackage.zip -CompressionLevel Optimal -Update; }"
 	xcopy /q/y savpackage.zip %PATHTOSAVED%\%theChoicedRepo%\
 	CD %PATHTOSAVED%\
@@ -234,9 +247,9 @@ IF DEFINED workWithZip (
 	
 ) ELSE (
 	ECHO Working with sav files.
-	xcopy /q/y *.sav %PATHTOSAVED%\%theChoicedRepo%\
-	DEL /Q *
+	forfiles /s /m *.sav /c "cmd /c xcopy @path %PATHTOSAVED%\%theChoicedRepo%\ /q /y"
 )
+
 
 
 DEL %PATHTOSAVED%\Logs\%theChoicedRepo%.txt
@@ -276,3 +289,25 @@ ECHO.
 PAUSE
 EXIT
 
+
+
+
+
+
+
+:ja1
+:test
+@ECHO OFF
+
+xcopy %PATHTOSAVED%\backupBeforeTest %PATHTOSAVED%\SaveGames /s /e /i
+DEL /S/Q %PATHTOSAVED%\TESTTTT
+RD /S/Q %PATHTOSAVED%\backupBeforeTest
+xcopy %PATHTOSAVED%\SaveGames %PATHTOSAVED%\backupBeforeTest /s /e /i
+
+PAUSE
+
+CD %PATHTOSAVED%\SaveGames\
+forfiles /s /m *.sav /c "cmd /c xcopy @path %PATHTOSAVED%\TESTTTT\&DEL /Q @path"
+
+PAUSE
+EXIT
