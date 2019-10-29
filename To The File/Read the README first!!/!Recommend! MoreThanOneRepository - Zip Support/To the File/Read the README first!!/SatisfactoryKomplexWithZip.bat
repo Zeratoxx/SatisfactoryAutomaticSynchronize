@@ -18,6 +18,7 @@ SET checkInterval=2
 SET exeName=FactoryGame.exe
 SET gitMessageFile=gitMessage.txt
 SET PATHTOSAVED=C:\Users\%username%\AppData\Local\FactoryGame\Saved
+SET whichSaved=SaveGames\
 SET nameOfWorldlistFile=listOfWorlds.txt
 SET counter=0
 SET listOfRepos=
@@ -42,6 +43,18 @@ FOR /F %%f IN (%nameOfWorldlistFile%) DO (
 	SET /A counter=counter+1
 	CALL :concat !counter! %%f
 )
+
+IF EXIST %PATHTOSAVED%\SaveGames\common\ (
+		SET whichSaved=SaveGames\common\
+		ECHO Working with %PATHTOSAVED%\%whichSaved%
+		ECHO.
+	) ELSE (
+		SET whichSaved=SaveGames\
+		ECHO Working with %PATHTOSAVED%\%whichSaved%
+		ECHO.
+	)
+
+
 
 
 :select
@@ -103,8 +116,9 @@ ECHO.
 
 
 
-CD %PATHTOSAVED%\SaveGames
+CD %PATHTOSAVED%\%whichSaved%
 DEL /Q *
+
 
 
 CD %PATHTOSAVED%\%theChoicedRepo%
@@ -134,14 +148,14 @@ IF EXIST savpackage.zip (
 	ECHO Entpacken...
 	powershell.exe -command "& { Expand-Archive savpackage.zip .\ -Force; }"
 	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChoicedRepo%.txt
-	xcopy /q/y *.sav %PATHTOSAVED%\SaveGames\
+	xcopy /q/y *.sav %PATHTOSAVED%\%whichSaved%
 	CD %PATHTOSAVED%\
 	RMDIR /S /Q .\temp\
 
 ) ELSE (
 	ECHO Working with sav files.
 	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChoicedRepo%.txt
-	xcopy /q/y *.sav %PATHTOSAVED%\SaveGames\
+	xcopy /q/y *.sav %PATHTOSAVED%\%whichSaved%
 )
 
 
@@ -197,8 +211,7 @@ ECHO -----
 ECHO Saving files...
 ECHO.
 
-
-CD %PATHTOSAVED%\SaveGames
+CD %PATHTOSAVED%\%whichSaved%
 
 IF DEFINED workWithZip (
 	ECHO Working with zip file.
