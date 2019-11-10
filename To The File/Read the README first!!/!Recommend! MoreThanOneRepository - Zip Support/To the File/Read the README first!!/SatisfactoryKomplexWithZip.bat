@@ -270,30 +270,14 @@ CD %PATHTOSAVED%\%theChoicedRepo%
 IF EXIST .\.git\ (
 	git add .
 	git commit -m "%gitMessage%"
-	cmd /E:OFF /C "git push --porcelain --verbose" > %PATHTOSAVED%\Logs\tmp.log
-	FOR /F "tokens=1*delims=:" %%G IN ('findstr /n "^" %PATHTOSAVED%\Logs\tmp.log') DO (
-		IF %%G EQU 2 (
-			SET VAR=!VAR!%%H
-		)
-	)
-	DEL /Q %PATHTOSAVED%\Logs\tmp.log
-	
-	
-	IF NOT "x!VAR:%searchVal%=!"=="x%VAR%" (
-		ECHO.
-		ECHO Push to external repository failed^^!
-		ECHO Fix the issue manually^^!^^!
-		GOTO error
-	) 
-	ECHO.
-	ECHO.
+	GOTO gitPush
 	
 ) ELSE (
 	ECHO This is not a git repository. Cannot commit and push.
 	ECHO Saves are now only local data.
 )
 
-
+:noError
 ECHO.
 ECHO.
 ECHO Complete. Closing...
@@ -305,10 +289,6 @@ ECHO.
 ECHO An error occured^^! Cancelling...
 PAUSE
 EXIT
-
-
-
-
 
 
 
@@ -328,3 +308,20 @@ forfiles /s /m *.sav /c "cmd /c xcopy @path %PATHTOSAVED%\TESTTTT\&DEL /Q @path"
 
 PAUSE
 EXIT
+
+
+:gitPush
+cmd /E:OFF /C "git push --porcelain" > %PATHTOSAVED%\Logs\tmp.log
+FOR /F "tokens=1*delims=:" %%G IN ('findstr /n "^" %PATHTOSAVED%\Logs\tmp.log') DO (
+	IF %%G EQU 2 (
+		SET VAR=!VAR!%%H
+	)
+)
+DEL /Q %PATHTOSAVED%\Logs\tmp.log
+
+IF NOT "x!VAR:%searchVal%=!"=="x%VAR%" (
+	ECHO.
+	ECHO Push to external repository failed^^!
+	ECHO Fix the issue manually^^!^^!
+	GOTO error
+) ELSE GOTO noError
