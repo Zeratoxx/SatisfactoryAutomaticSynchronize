@@ -24,7 +24,7 @@ SET counter=0
 SET listOfRepos=
 SET alreadyStarted=
 SET workWithZip=
-
+SET searchVal=rejected
 
 
 
@@ -270,7 +270,23 @@ CD %PATHTOSAVED%\%theChoicedRepo%
 IF EXIST .\.git\ (
 	git add .
 	git commit -m "%gitMessage%"
-	git push
+	cmd /E:OFF /C "git push --porcelain" > %PATHTOSAVED%\Logs\tmp.log
+	FOR /F "tokens=1*delims=:" %%G IN ('findstr /n "^" %PATHTOSAVED%\Logs\tmp.log') DO (
+		IF %%G EQU 2 (
+			SET VAR=!VAR!%%H
+		)
+	)
+	DEL /Q %PATHTOSAVED%\Logs\tmp.log
+	
+	
+	IF NOT "x!VAR:%searchVal%=!"=="x%VAR%" (
+		ECHO.
+		ECHO Push to external repository failed^^!
+		GOTO error
+	) 
+	ECHO.
+	ECHO.
+	
 ) ELSE (
 	ECHO This is not a git repository. Cannot commit and push.
 	ECHO Saves are now only local data.
