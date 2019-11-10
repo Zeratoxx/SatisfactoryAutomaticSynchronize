@@ -270,7 +270,7 @@ CD %PATHTOSAVED%\%theChoicedRepo%
 IF EXIST .\.git\ (
 	git add .
 	git commit -m "%gitMessage%"
-	cmd /E:OFF /C "git push --porcelain" > %PATHTOSAVED%\Logs\tmp.log
+	cmd /E:OFF /C "git push --porcelain --verbose" > %PATHTOSAVED%\Logs\tmp.log
 	FOR /F "tokens=1*delims=:" %%G IN ('findstr /n "^" %PATHTOSAVED%\Logs\tmp.log') DO (
 		IF %%G EQU 2 (
 			SET VAR=!VAR!%%H
@@ -282,6 +282,7 @@ IF EXIST .\.git\ (
 	IF NOT "x!VAR:%searchVal%=!"=="x%VAR%" (
 		ECHO.
 		ECHO Push to external repository failed^^!
+		ECHO Fix the issue manually^^!^^!
 		GOTO error
 	) 
 	ECHO.
@@ -300,8 +301,8 @@ timeout /T 10 /nobreak >NUL
 EXIT
 
 :error
-ECHO An error occured^^! Cancelling...
 ECHO.
+ECHO An error occured^^! Cancelling...
 PAUSE
 EXIT
 
