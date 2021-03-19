@@ -15,6 +15,7 @@ REM Das hier ist also auch ein Kommentar!
 SETLOCAL EnableExtensions
 SETLOCAL enabledelayedexpansion
 SET checkInterval=2
+SET useExperimental=false
 SET exeName=FactoryGame.exe
 SET gitMessageFile=gitMessage.txt
 SET PATHTOSAVED=C:\Users\%username%\AppData\Local\FactoryGame\Saved
@@ -70,6 +71,23 @@ IF errorlevel 1 GOTO ja1
 
 :nein1
 :select
+SET theGameChoice=n
+SET /p theGameChoice=Do you want to play the experimental build? (y/[n]): 
+set res=F
+IF "%theGameChoice%" == "n" SET res=T
+IF "%theGameChoice%" == "" SET res=T
+IF "%res%"=="T" (
+	SET useExperimental=false
+	ECHO Stable build will be started.
+) ELSE IF "%theGameChoice%" == "y" (
+	SET useExperimental=true
+	ECHO Experimental build will be started.
+) ELSE (
+	ECHO Invalid input.
+	ECHO.
+	GOTO select
+)
+
 ECHO Please enter the number of the map you want to play.
 ECHO.
 ECHO The List:
@@ -176,8 +194,11 @@ ECHO.
 CD %PATHTOSAVED%\Logs
 ECHO -----
 ECHO Starting the game...
-START com.epicgames.launcher://apps/CrabEA?action=launch
-
+IF "%useExperimental%" == "false" (
+	START com.epicgames.launcher://apps/CrabEA?action=launch
+) ELSE (
+	START com.epicgames.launcher://apps/CrabTest?action=launch&silent=true
+)
 
 :checkIfRunning
 IF EXIST search.log (
