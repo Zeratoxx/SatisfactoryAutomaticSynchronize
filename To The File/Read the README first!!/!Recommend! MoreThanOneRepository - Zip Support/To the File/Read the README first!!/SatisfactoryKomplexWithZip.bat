@@ -19,7 +19,7 @@ SET useExperimental=false
 SET exeName=FactoryGame.exe
 SET gitMessageFile=gitMessage.txt
 SET PATHTOSAVED=C:\Users\%username%\AppData\Local\FactoryGame\Saved
-SET whichSaved=SaveGames\
+SET whichSaved=SaveGames\common\
 SET nameOfWorldlistFile=listOfWorlds.txt
 SET counter=0
 SET listOfRepos=
@@ -45,11 +45,9 @@ FOR /F %%f IN (%nameOfWorldlistFile%) DO (
 	CALL :concat !counter! %%f
 )
 
-IF EXIST %PATHTOSAVED%\SaveGames\common\ (
-		SET whichSaved=SaveGames\common\
-	) ELSE (
-		SET whichSaved=SaveGames\
-	)
+IF NOT EXIST %PATHTOSAVED%\%whichSaved% (
+	MKDIR %PATHTOSAVED%\%whichSaved%
+)
 
 
 
