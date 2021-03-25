@@ -21,6 +21,7 @@ SET gitMessageFile=gitMessage.txt
 SET PATHTOSAVED=C:\Users\%username%\AppData\Local\FactoryGame\Saved
 SET whichSaved=SaveGames\common\
 SET nameOfWorldlistFile=listOfWorlds.txt
+SET saveChoiceFile=lastChoice.txt
 SET counter=0
 SET listOfRepos=
 SET alreadyStarted=
@@ -69,21 +70,42 @@ IF errorlevel 1 GOTO ja1
 
 :nein1
 :select
-SET theGameChoice=n
-SET /p theGameChoice=Do you want to play the experimental build? (y/[n]): 
-set res=F
-IF "%theGameChoice%" == "n" SET res=T
-IF "%theGameChoice%" == "" SET res=T
-IF "%res%"=="T" (
-	SET useExperimental=false
-	ECHO Stable build will be started.
-) ELSE IF "%theGameChoice%" == "y" (
-	SET useExperimental=true
-	ECHO Experimental build will be started.
+SET theGameChoice=
+SET previousGameChoice=n
+IF NOT EXIST %saveChoiceFile% (
+	(ECHO %theGameChoice%)>%saveChoiceFile%
 ) ELSE (
-	ECHO Invalid input.
-	ECHO.
-	GOTO select
+	SET /p previousGameChoice=<%saveChoiceFile%
+)
+SET savedDefault=y/[n]
+IF "%previousGameChoice%" == "n" (
+	SET savedDefault=y/[n]
+) ELSE (
+	IF "%previousGameChoice%" == "y" (
+		SET savedDefault=[y]/n
+	) ELSE (
+		ECHO Failure
+	)
+)
+
+SET /p theGameChoice=Do you want to play the experimental build? (%savedDefault%): 
+IF "%theGameChoice%" == "" (
+	SET theGameChoice=%previousGameChoice%
+)
+IF "%theGameChoice%" == "n" (
+	SET useExperimental=false
+	(ECHO %theGameChoice%)>%saveChoiceFile%
+	ECHO Stable build will be started.
+) ELSE ( 
+	IF "%theGameChoice%" == "y" (
+		SET useExperimental=true
+		(ECHO %theGameChoice%)>%saveChoiceFile%
+		ECHO Experimental build will be started.
+	) ELSE (
+		ECHO Invalid input.
+		ECHO.
+		GOTO select
+	)
 )
 
 ECHO Please enter the number of the map you want to play.
@@ -195,7 +217,7 @@ ECHO Starting the game...
 IF "%useExperimental%" == "false" (
 	START com.epicgames.launcher://apps/CrabEA?action=launch
 ) ELSE (
-	START com.epicgames.launcher://apps/CrabTest?action=launch&silent=true
+	START com.epicgames.launcher://apps/CrabTest?action=launch
 )
 
 :checkIfRunning
@@ -216,15 +238,17 @@ FOR /F %%x IN ('tasklist /NH /FI "IMAGENAME eq %exeName%"') DO (
 		timeout /T %checkInterval% /nobreak >NUL
 		GOTO checkIfRunning
 		
-	) ELSE IF DEFINED alreadyStarted (
-		ECHO.
-		ECHO Satisfactory has been closed^^! Starting to synchronize^^!
-		GOTO continue
-		
 	) ELSE (
-		ECHO Satisfactory was not started yet..
-		timeout /T %checkInterval% /nobreak >NUL
-		GOTO checkIfRunning
+		IF DEFINED alreadyStarted (
+			ECHO.
+			ECHO Satisfactory has been closed^^! Starting to synchronize^^!
+			GOTO continue
+		
+		) ELSE (
+			ECHO Satisfactory was not started yet..
+			timeout /T %checkInterval% /nobreak >NUL
+			GOTO checkIfRunning
+		)
 	)
 )
 
