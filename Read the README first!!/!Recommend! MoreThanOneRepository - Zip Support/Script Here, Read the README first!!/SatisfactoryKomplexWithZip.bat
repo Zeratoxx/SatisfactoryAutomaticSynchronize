@@ -19,7 +19,9 @@ SET useExperimental=false
 SET exeName=FactoryGame.exe
 SET gitMessageFile=gitMessage.txt
 SET PATHTOSAVED=C:\Users\%username%\AppData\Local\FactoryGame\Saved
-SET whichSaved=SaveGames\common\
+SET keepDirInSaved=blueprints
+SET saveGames=SaveGames
+SET whichSaved=%saveGames%\common\
 SET nameOfWorldlistFile=listOfWorlds.txt
 SET saveChoiceFile=lastChoice.txt
 SET counter=0
@@ -27,6 +29,7 @@ SET listOfRepos=
 SET alreadyStarted=
 SET workWithZip=
 SET searchVal=rejected
+
 
 
 
@@ -165,8 +168,9 @@ ECHO.
 ECHO Loading files from %theChoicedRepo%...
 ECHO.
 
-ECHO Deleting current sav files...
-DEL /S/Q %PATHTOSAVED%\SaveGames\
+ECHO Deleting current sav files, keeping blueprints...
+FOR /d %%a IN ("%PATHTOSAVED%\%saveGames%\*") DO IF /i NOT "%%~nxa"=="%keepDirInSaved%" RD /S /Q "%%a"
+FOR %%a IN ("%PATHTOSAVED%\%saveGames%\*") DO IF /i NOT "%%~nxa"=="%keepfile%" DEL "%%a"
 ECHO.
 
 CD %PATHTOSAVED%\%theChoicedRepo%
@@ -268,7 +272,7 @@ ECHO.
 ECHO Saving files...
 ECHO.
 
-CD %PATHTOSAVED%\SaveGames\
+CD %PATHTOSAVED%\%saveGames%\
 
 IF DEFINED workWithZip (
 	ECHO Working with zip file.
@@ -339,14 +343,14 @@ EXIT
 :test
 @ECHO OFF
 
-xcopy %PATHTOSAVED%\backupBeforeTest %PATHTOSAVED%\SaveGames /s /e /i
+xcopy %PATHTOSAVED%\backupBeforeTest %PATHTOSAVED%\%saveGames% /s /e /i
 DEL /S/Q %PATHTOSAVED%\TESTTTT
 RD /S/Q %PATHTOSAVED%\backupBeforeTest
-xcopy %PATHTOSAVED%\SaveGames %PATHTOSAVED%\backupBeforeTest /s /e /i
+xcopy %PATHTOSAVED%\%saveGames% %PATHTOSAVED%\backupBeforeTest /s /e /i
 
 PAUSE
 
-CD %PATHTOSAVED%\SaveGames\
+CD %PATHTOSAVED%\%saveGames%\
 forfiles /s /m *.sav /c "cmd /c xcopy @path %PATHTOSAVED%\TESTTTT\&DEL /Q @path"
 
 PAUSE
