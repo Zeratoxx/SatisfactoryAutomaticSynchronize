@@ -24,6 +24,7 @@ SET saveGames=SaveGames
 SET whichSaved=%saveGames%\common\
 SET nameOfWorldlistFile=listOfWorlds.txt
 SET saveChoiceFile=lastChoice.txt
+SET saveWorldChoiceFile=lastWorldChoice.txt
 SET counter=0
 SET listOfRepos=
 SET alreadyStarted=
@@ -110,13 +111,44 @@ IF "%theGameChoice%" == "n" (
 	)
 )
 
+
+SET theChoice=
+SET previousWorldChoice=
+IF NOT EXIST %saveWorldChoiceFile% (
+	(ECHO %theChoice%)>%saveWorldChoiceFile%
+) ELSE (
+	SET /p previousWorldChoice=<%saveWorldChoiceFile%
+)
+SET savedWorldDefault=
+IF "%previousWorldChoice%" == "" (
+	SET savedWorldDefault=
+) ELSE (
+	SET "varTwo="&for /f "delims=0123456789" %%i in ("%previousWorldChoice%") do set varTwo=%%i
+	IF defined varTwo (
+		SET savedWorldDefault=
+	) ELSE (
+		ECHO "%previousWorldChoice% is numeric"
+		SET /a previousWorldChoice=5
+		IF %previousWorldChoice% GTR 0 (
+		 REM	SET savedWorldDefault=[%previousWorldChoice%]
+		) ELSE (
+	 	 	REM SET savedWorldDefault=
+			REM for /f "usebackq" %%k in (`type %nameOfWorldlistFile% ^| find "" /v /c`) do (
+			REM 	echo line count is %%k
+			REM 	set /a lines += %%k
+			REM )
+		)
+	)
+)
+
 ECHO Please enter the number of the map you want to play.
 ECHO.
 ECHO The List:
 SET b=%listOfRepos:,=^&ECHO.%
 ECHO %b%
 ECHO.
-SET /p theChoice=Number: 
+SET /p theChoice=Number %savedWorldDefault%: 
+
 SET /a theChoice-=1
 
 ECHO.
