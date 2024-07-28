@@ -33,8 +33,7 @@ SET searchVal=rejected
 
 
 
-
-CD %PATHTOSAVED%
+CD /D %PATHTOSAVED%
 
 IF EXIST %nameOfWorldlistFile% (
 	REM Go on.
