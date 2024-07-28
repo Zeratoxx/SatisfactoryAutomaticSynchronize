@@ -113,30 +113,26 @@ IF "%theGameChoice%" == "n" (
 
 
 SET theChoice=
-SET previousWorldChoice=
+SET "previousWorldChoice=-1"
 IF NOT EXIST %saveWorldChoiceFile% (
-	(ECHO %theChoice%)>%saveWorldChoiceFile%
+	(ECHO %previousWorldChoice%)>%saveWorldChoiceFile%
 ) ELSE (
 	SET /p previousWorldChoice=<%saveWorldChoiceFile%
 )
+
 SET savedWorldDefault=
-IF "%previousWorldChoice%" == "" (
+IF "%previousWorldChoice%" == "-1" (
 	SET savedWorldDefault=
 ) ELSE (
 	SET "varTwo="&for /f "delims=0123456789" %%i in ("%previousWorldChoice%") do set varTwo=%%i
 	IF defined varTwo (
 		SET savedWorldDefault=
 	) ELSE (
-		ECHO "%previousWorldChoice% is numeric"
-		SET /a previousWorldChoice=5
-		IF %previousWorldChoice% GTR 0 (
-		 REM	SET savedWorldDefault=[%previousWorldChoice%]
+		rem echo "%previousWorldChoice% is numeric"
+		IF %previousWorldChoice% LSS 1 (
+			SET savedWorldDefault=
 		) ELSE (
-	 	 	REM SET savedWorldDefault=
-			REM for /f "usebackq" %%k in (`type %nameOfWorldlistFile% ^| find "" /v /c`) do (
-			REM 	echo line count is %%k
-			REM 	set /a lines += %%k
-			REM )
+			SET "savedWorldDefault= (Default: %previousWorldChoice%)"
 		)
 	)
 )
@@ -147,27 +143,33 @@ ECHO The List:
 SET b=%listOfRepos:,=^&ECHO.%
 ECHO %b%
 ECHO.
-SET /p theChoice=Number %savedWorldDefault%: 
+SET /p theChoice=Number%savedWorldDefault%: 
 
-SET /a theChoice-=1
+IF "%theChoice%" == "" (
+	IF "%previousWorldChoice%" == "-1" (
+		SET /a theChoice-=1
+	) ELSE (
+		SET /a theChoice=%previousWorldChoice%-1
+	)
+) ELSE (
+	SET /a theChoice-=1
+)
 
 ECHO.
 
-
-SET theChoicedRepo=none
-
+SET theChosenRepo=none
 
 IF %theChoice% EQU 0 (
-	FOR /F %%l IN (%nameOfWorldlistFile%) DO SET theChoicedRepo=%%l&GOTO nextline
+	FOR /F %%l IN (%nameOfWorldlistFile%) DO SET theChosenRepo=%%l&GOTO nextline
 ) ELSE (
 	IF %theChoice% GTR 0 (
-		FOR /F "skip=%theChoice%" %%l IN (%nameOfWorldlistFile%) DO SET theChoicedRepo=%%l&GOTO nextline
+		FOR /F "skip=%theChoice%" %%l IN (%nameOfWorldlistFile%) DO SET theChosenRepo=%%l&GOTO nextline
 	)
 )
 
 
 :nextline
-IF "%theChoicedRepo%"=="none" (
+IF "%theChosenRepo%"=="none" (
 	ECHO Invalid input^^!^^!
 	ECHO.
 	ECHO.
@@ -175,6 +177,7 @@ IF "%theChoicedRepo%"=="none" (
 	GOTO select
 )
 ECHO.
+
 GOTO start
 
 
@@ -192,11 +195,14 @@ EXIT /B
 
 
 :start
+SET /a theChoice+=1
+(ECHO %theChoice%)>%saveWorldChoiceFile%
+SET /a theChoice-=1
 
 ECHO -----
 ECHO Working with %PATHTOSAVED%\%whichSaved% ...
 ECHO.
-ECHO Loading files from %theChoicedRepo%...
+ECHO Loading files from %theChosenRepo%...
 ECHO.
 
 ECHO Deleting current sav files, keeping blueprints...
@@ -204,7 +210,7 @@ FOR /d %%a IN ("%PATHTOSAVED%\%saveGames%\*") DO IF /i NOT "%%~nxa"=="%keepDirIn
 FOR %%a IN ("%PATHTOSAVED%\%saveGames%\*") DO IF /i NOT "%%~nxa"=="%keepfile%" DEL "%%a"
 ECHO.
 
-CD %PATHTOSAVED%\%theChoicedRepo%
+CD %PATHTOSAVED%\%theChosenRepo%
 
 IF EXIST .\.git\ (
 	git pull
@@ -230,14 +236,14 @@ IF EXIST savpackage.zip (
 	CD %PATHTOSAVED%\temp
 	ECHO Decompress...
 	powershell.exe -command "& { Expand-Archive savpackage.zip .\ -Force; }"
-	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChoicedRepo%.txt
+	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChosenRepo%.txt
 	xcopy /q/y *.sav %PATHTOSAVED%\%whichSaved%
 	CD %PATHTOSAVED%\
 	RMDIR /S /Q .\temp\
 
 ) ELSE (
 	ECHO Working with sav files.
-	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChoicedRepo%.txt
+	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChosenRepo%.txt
 	xcopy /q/y *.sav %PATHTOSAVED%\%whichSaved%
 )
 
@@ -318,19 +324,19 @@ IF DEFINED workWithZip (
 	CD %PATHTOSAVED%\temp
 	ECHO Compress...
 	powershell.exe -command "& { Compress-Archive *.sav savpackage.zip -CompressionLevel Optimal -Update; }"
-	xcopy /q/y savpackage.zip %PATHTOSAVED%\%theChoicedRepo%\
+	xcopy /q/y savpackage.zip %PATHTOSAVED%\%theChosenRepo%\
 	CD %PATHTOSAVED%\
 	RMDIR /S /Q .\temp\
 	
 	
 ) ELSE (
 	ECHO Working with sav files.
-	forfiles /s /m *.sav /c "cmd /c xcopy @path %PATHTOSAVED%\%theChoicedRepo%\ /q /y"
+	forfiles /s /m *.sav /c "cmd /c xcopy @path %PATHTOSAVED%\%theChosenRepo%\ /q /y"
 )
 
 
 
-DEL %PATHTOSAVED%\Logs\%theChoicedRepo%.txt
+DEL %PATHTOSAVED%\Logs\%theChosenRepo%.txt
 ECHO.
 ECHO.
 
@@ -344,7 +350,7 @@ IF EXIST %PATHTOSAVED%\%gitMessageFile% (
 )
 
 
-CD %PATHTOSAVED%\%theChoicedRepo%
+CD %PATHTOSAVED%\%theChosenRepo%
 IF EXIST .\.git\ (
 	git add .
 	git commit -m "%gitMessage%"
