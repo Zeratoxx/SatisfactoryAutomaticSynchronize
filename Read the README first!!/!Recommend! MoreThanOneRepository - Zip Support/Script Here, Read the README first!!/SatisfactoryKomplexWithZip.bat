@@ -43,7 +43,7 @@ IF EXIST %nameOfWorldlistFile% (
 	GOTO error
 )
 
-FOR /F %%f IN (%nameOfWorldlistFile%) DO (
+FOR /F "tokens=*" %%f IN (%nameOfWorldlistFile%) DO (
 	
 	SET /A counter=counter+1
 	CALL :concat !counter! %%f
