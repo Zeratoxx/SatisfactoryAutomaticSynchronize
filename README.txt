@@ -1,8 +1,14 @@
+!!! ATTENTION !!!
+
+Currently Broken
+
+-------------------------------------------------------------------------
+
 Es gibt zwei Versionen!
 Die Versionen sind nicht kompatibel miteinander!
 
-Eine ist einfach gehalten, unterstützt aber nur eine Welt.
-Die andere Version unterstützt mehrere Welten, muss aber etwas aufwendiger vorbereitet werden.
+Eine ist einfach gehalten, unterstÃ¼tzt aber nur eine Welt.
+Die andere Version unterstÃ¼tzt mehrere Welten, muss aber etwas aufwendiger vorbereitet werden.
 
 Empfehlung: 
 Ich empfehle die Version MoreThanOneRepository.
