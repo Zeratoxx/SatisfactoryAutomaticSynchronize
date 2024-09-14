@@ -16,7 +16,7 @@ SETLOCAL EnableExtensions
 SETLOCAL enabledelayedexpansion
 SET checkInterval=2
 SET useExperimental=false
-SET exeName=FactoryGame.exe
+SET exeName=FactoryGameEGS.exe
 SET gitMessageFile=gitMessage.txt
 SET PATHTOSAVED=C:\Users\%username%\AppData\Local\FactoryGame\Saved
 SET keepDirInSaved=blueprints
@@ -46,7 +46,7 @@ IF EXIST %nameOfWorldlistFile% (
 FOR /F "tokens=*" %%f IN (%nameOfWorldlistFile%) DO (
 	
 	SET /A counter=counter+1
-	CALL :concat !counter! %%f
+	CALL :concat !counter! "%%f"
 )
 
 IF NOT EXIST %PATHTOSAVED%\%whichSaved% (
@@ -160,10 +160,10 @@ ECHO.
 SET theChosenRepo=none
 
 IF %theChoice% EQU 0 (
-	FOR /F %%l IN (%nameOfWorldlistFile%) DO SET theChosenRepo=%%l&GOTO nextline
+	FOR /F "tokens=*" %%l IN (%nameOfWorldlistFile%) DO SET theChosenRepo=%%l&GOTO nextline
 ) ELSE (
 	IF %theChoice% GTR 0 (
-		FOR /F "skip=%theChoice%" %%l IN (%nameOfWorldlistFile%) DO SET theChosenRepo=%%l&GOTO nextline
+		FOR /F "tokens=* skip=%theChoice%" %%l IN (%nameOfWorldlistFile%) DO SET theChosenRepo=%%l&GOTO nextline
 	)
 )
 
@@ -182,10 +182,15 @@ GOTO start
 
 
 :concat
+SET _string=%2
+SET _string=###%_string%###
+SET _string=%_string:"###=%
+SET _string=%_string:###"=%
+SET _string=%_string:###=%
 IF "%listOfRepos%"=="" (
-	SET listOfRepos=%1: %2
+	SET listOfRepos=%1: %_string%
 ) ELSE (
-	SET listOfRepos=!listOfRepos!,%1: %2
+	SET listOfRepos=!listOfRepos!,%1: %_string%
 )
 ::callback EXIT /B
 EXIT /B
@@ -210,7 +215,7 @@ FOR /d %%a IN ("%PATHTOSAVED%\%saveGames%\*") DO IF /i NOT "%%~nxa"=="%keepDirIn
 FOR %%a IN ("%PATHTOSAVED%\%saveGames%\*") DO IF /i NOT "%%~nxa"=="%keepfile%" DEL "%%a"
 ECHO.
 
-CD %PATHTOSAVED%\%theChosenRepo%
+CD "%PATHTOSAVED%\%theChosenRepo%"
 
 IF EXIST .\.git\ (
 	git pull
@@ -236,14 +241,14 @@ IF EXIST savpackage.zip (
 	CD %PATHTOSAVED%\temp
 	ECHO Decompress...
 	powershell.exe -command "& { Expand-Archive savpackage.zip .\ -Force; }"
-	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChosenRepo%.txt
+	DIR /B *.sav >"%PATHTOSAVED%\Logs\%theChosenRepo%.txt"
 	xcopy /q/y *.sav %PATHTOSAVED%\%whichSaved%
 	CD %PATHTOSAVED%\
 	RMDIR /S /Q .\temp\
 
 ) ELSE (
 	ECHO Working with sav files.
-	DIR /B *.sav >%PATHTOSAVED%\Logs\%theChosenRepo%.txt
+	DIR /B *.sav >"%PATHTOSAVED%\Logs\%theChosenRepo%.txt"
 	xcopy /q/y *.sav %PATHTOSAVED%\%whichSaved%
 )
 
@@ -324,19 +329,19 @@ IF DEFINED workWithZip (
 	CD %PATHTOSAVED%\temp
 	ECHO Compress...
 	powershell.exe -command "& { Compress-Archive *.sav savpackage.zip -CompressionLevel Optimal -Update; }"
-	xcopy /q/y savpackage.zip %PATHTOSAVED%\%theChosenRepo%\
+	xcopy /q/y savpackage.zip "%PATHTOSAVED%\%theChosenRepo%\"
 	CD %PATHTOSAVED%\
 	RMDIR /S /Q .\temp\
 	
 	
 ) ELSE (
 	ECHO Working with sav files.
-	forfiles /s /m *.sav /c "cmd /c xcopy @path %PATHTOSAVED%\%theChosenRepo%\ /q /y"
+	forfiles /s /m *.sav /c "cmd /c xcopy @path "%PATHTOSAVED%\%theChosenRepo%\" /q /y"
 )
 
 
 
-DEL %PATHTOSAVED%\Logs\%theChosenRepo%.txt
+DEL "%PATHTOSAVED%\Logs\%theChosenRepo%.txt"
 ECHO.
 ECHO.
 
@@ -350,7 +355,7 @@ IF EXIST %PATHTOSAVED%\%gitMessageFile% (
 )
 
 
-CD %PATHTOSAVED%\%theChosenRepo%
+CD "%PATHTOSAVED%\%theChosenRepo%"
 IF EXIST .\.git\ (
 	git add .
 	git commit -m "%gitMessage%"
